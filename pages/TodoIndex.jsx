@@ -18,6 +18,9 @@ export function TodoIndex() {
     // Special hook for accessing search-params:
     const [searchParams, setSearchParams] = useSearchParams()
 
+    // Holds the todoId pending confirmation; null means no modal
+    const [watitingRemoveConfirm, setWatitingRemoveConfirm] = useState(null)
+
     const dispatch = useDispatch()
     const todos = useSelector(s => s.todosModule.todos)
     const filterBy = useSelector(s => s.filterModule.filterBy)
@@ -54,6 +57,11 @@ export function TodoIndex() {
             })
     }
 
+    // Ask for confirmation: open modal and remember the id
+    function onAskRemoveTodo(todoId) {
+        setWatitingRemoveConfirm(todoId)
+    }
+
     function onToggleTodo(todo) {
         const todoToSave = { ...todo, isDone: !todo.isDone }
         todoService.save(todoToSave)
@@ -67,6 +75,14 @@ export function TodoIndex() {
             })
     }
 
+    const confirmModal = (
+        <div className='confirm-remove-todo-container'>
+            <h3>Are you sure want to remove this ToDo?</h3>
+            <button onClick={() => { onRemoveTodo(watitingRemoveConfirm); setWatitingRemoveConfirm(null) }}>Confirm</button>
+            <button onClick={() => setWatitingRemoveConfirm(null)}>Cancle</button>
+        </div>
+    )
+
     if (!todos || isLoading) return <div>Loading...</div>
     return (
         <section className="todo-index">
@@ -75,12 +91,15 @@ export function TodoIndex() {
                 <Link to="/todo/edit" className="btn" >Add Todo</Link>
             </div>
             <h2>Todos List</h2>
-            <TodoList todos={todos} onRemoveTodo={onRemoveTodo} onToggleTodo={onToggleTodo} />
+            <TodoList todos={todos} onRemoveTodo={onAskRemoveTodo} onToggleTodo={onToggleTodo} />
             <hr />
             <h2>Todos Table</h2>
             <div style={{ width: '60%', margin: 'auto' }}>
-                <DataTable todos={todos} onRemoveTodo={onRemoveTodo} />
+                <DataTable todos={todos} onRemoveTodo={onAskRemoveTodo} />
             </div>
+            {watitingRemoveConfirm && 
+                confirmModal
+            }
         </section>
     )
 }
