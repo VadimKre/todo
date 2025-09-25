@@ -5,6 +5,7 @@ const { useSelector, useDispatch } = ReactRedux
 
 import { userService } from '../services/user.service.js'
 import { UserMsg } from "./UserMsg.jsx"
+import { ConfirmDialog } from './ConfirmDialog.jsx'
 import { LoginSignup } from './LoginSignup.jsx'
 import { showErrorMsg } from '../services/event-bus.service.js'
 
@@ -56,6 +57,7 @@ export function AppHeader() {
                 </nav>
             </section>
             <UserMsg />
+            <ConfirmDialog />
         </header>
     )
 }

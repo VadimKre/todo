@@ -2,7 +2,7 @@ import { TodoFilter } from "../cmps/TodoFilter.jsx"
 import { TodoList } from "../cmps/TodoList.jsx"
 import { DataTable } from "../cmps/data-table/DataTable.jsx"
 import { todoService } from "../services/todo.service.js"
-import { showErrorMsg, showSuccessMsg } from "../services/event-bus.service.js"
+import { showErrorMsg, showSuccessMsg, eventBusService } from "../services/event-bus.service.js"
 
 // import { SET_TODOS, ADD_TODO, UPDATE_TODO, REMOVE_TODO } from "../store/reducers/todo.reducer.js"
 import { setTodos, removeTodo , updateTodo } from "../store/actions/todo.actions.js"
@@ -19,7 +19,7 @@ export function TodoIndex() {
     const [searchParams, setSearchParams] = useSearchParams()
 
     // Holds the todoId pending confirmation; null means no modal
-    const [watitingRemoveConfirm, setWatitingRemoveConfirm] = useState(null)
+    // Confirmation is now handled globally via eventBus + ConfirmDialog
 
     const dispatch = useDispatch()
     const todos = useSelector(s => s.todosModule.todos)
@@ -57,9 +57,14 @@ export function TodoIndex() {
             })
     }
 
-    // Ask for confirmation: open modal and remember the id
+    // Ask for confirmation globally via the event bus
     function onAskRemoveTodo(todoId) {
-        setWatitingRemoveConfirm(todoId)
+        eventBusService.emit('confirm', {
+            txt: 'Are you sure want to remove this ToDo?',
+            okText: 'Confirm',
+            cancelText: 'Cancel',
+            onConfirm: () => onRemoveTodo(todoId),
+        })
     }
 
     function onToggleTodo(todo) {
@@ -75,14 +80,6 @@ export function TodoIndex() {
             })
     }
 
-    const confirmModal = (
-        <div className='confirm-remove-todo-container'>
-            <h3>Are you sure want to remove this ToDo?</h3>
-            <button onClick={() => { onRemoveTodo(watitingRemoveConfirm); setWatitingRemoveConfirm(null) }}>Confirm</button>
-            <button onClick={() => setWatitingRemoveConfirm(null)}>Cancle</button>
-        </div>
-    )
-
     if (!todos || isLoading) return <div>Loading...</div>
     return (
         <section className="todo-index">
@@ -97,9 +94,6 @@ export function TodoIndex() {
             <div style={{ width: '60%', margin: 'auto' }}>
                 <DataTable todos={todos} onRemoveTodo={onAskRemoveTodo} />
             </div>
-            {watitingRemoveConfirm && 
-                confirmModal
-            }
         </section>
     )
 }
